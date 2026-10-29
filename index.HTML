@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Check Diabetes Risk - DiaRisk AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Diabetes Risk Assessment</h2>
+  <p>
+    Enter 8 clinical health measurements below. Our trained Machine Learning model analyzes your metabolic profile to estimate the likelihood of diabetes.
+  </p>
+</div>
+
+{% if not model_ready %}
+<div class="alert-error" style="background:#fffbeb; border-color:#fde68a; color:#92400e;">
+  <span>⚠️</span>
+  <div>
+    <strong>Model not trained yet!</strong> Run <code>python train_model.py</code> in the terminal to train the models and generate <code>model.pkl</code>.
+  </div>
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert-error" role="alert">
+  <span>❌</span>
+  <div>{{ error }}</div>
+</div>
+{% endif %}
+
+<div class="predict-grid">
+
+  <!-- Left Column: Input Form -->
+  <div class="card">
+    <div class="card-title">
+      <span>📝</span> Patient Health Metrics
+    </div>
+    <div class="card-subtitle">
+      Fill in the measurements or click a sample profile to auto-fill standard data:
+    </div>
+
+    <!-- Quick Preset Buttons for 1-Click Testing -->
+    <div class="preset-bar">
+      <span class="preset-title">Test Presets:</span>
+      <button type="button" class="btn-preset" onclick="fillPreset('healthy')">🟢 Healthy Adult</button>
+      <button type="button" class="btn-preset" onclick="fillPreset('moderate')">🟡 Borderline Profile</button>
+      <button type="button" class="btn-preset" onclick="fillPreset('high')">🔴 High Risk Profile</button>
+      <button type="button" class="btn-preset" onclick="clearForm()" style="color:#ef4444;">Clear</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('index') }}" id="riskForm">
+      <div class="form-grid">
+        {% for feat in features %}
+        {% set info = field_info[feat] %}
+        <div class="form-group">
+          <label class="form-label" for="{{ feat }}">
+            <span>{{ info.label }}</span>
+            <span class="form-unit">{{ info.unit }}</span>
+          </label>
+          <input
+            type="number"
+            class="form-input"
+            id="{{ feat }}"
+            name="{{ feat }}"
+            min="{{ info.min }}"
+            max="{{ info.max }}"
+            step="{{ info.step }}"
+            value="{{ values.get(feat, '') }}"
+            placeholder="e.g. {{ info.default }}"
+            required
+          >
+          <span class="form-hint">{{ info.hint }}</span>
+        </div>
+        {% endfor %}
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="btnSubmit">
+            <span>🔍</span> Calculate Risk Level
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Right Column: Result Panel -->
+  <div class="card result-card" id="resultContainer">
+    {% if result %}
+    <div class="result-banner {{ result.css }}">
+      <div class="risk-score-display">{{ result.percent }}%</div>
+      <div class="risk-badge">{{ result.label }}</div>
+      <p class="result-summary">{{ result.summary }}</p>
+    </div>
+
+    <div class="tips-container">
+      <div class="tips-title">
+        <span>💡</span> Recommended Health Actions
+      </div>
+      <ul class="tips-list">
+        {% for tip in result.tips %}
+        <li class="tip-item">
+          <span class="tip-icon">✅</span>
+          <span>{{ tip }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <!-- Metric Breakdown Table -->
+      <div style="margin-top:22px;">
+        <div class="tips-title">
+          <span>🩺</span> Measurement Benchmark Breakdown
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Measurement</th>
+                <th>Entered Value</th>
+                <th>Clinical Benchmark</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in result.breakdown %}
+              <tr>
+                <td><strong>{{ item.label }}</strong></td>
+                <td>{{ item.value }} {{ item.unit }}</td>
+                <td>
+                  <span class="badge-tag {{ item.status }}">{{ item.status_label }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <!-- Empty State before calculation -->
+    <div class="empty-state">
+      <div class="empty-icon">📊</div>
+      <h3>Awaiting Patient Data</h3>
+      <p>
+        Fill out the 8 health parameters on the left or select a sample preset, then click <strong>Calculate Risk Level</strong> to view predictions and health tips.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Presets data embedded from Flask
+  const presets = {{ demo_profiles | tojson }};
+
+  function fillPreset(type) {
+    if (!presets[type]) return;
+    const data = presets[type];
+    for (const key in data) {
+      const input = document.getElementById(key);
+      if (input) {
+        input.value = data[key];
+        // Add a subtle flash animation to indicate auto-fill
+        input.style.backgroundColor = '#f0fdfa';
+        setTimeout(() => { input.style.backgroundColor = '#fff'; }, 300);
+      }
+    }
+  }
+
+  function clearForm() {
+    const inputs = document.querySelectorAll('.form-input');
+    inputs.forEach(input => input.value = '');
+  }
+</script>
+{% endblock %}
