@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Diabetes Risk Detection System{% endblock %}</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('index') }}" class="brand">
+        <div class="brand-icon">🩺</div>
+        <div class="brand-text">
+          <h1>DiaRisk AI</h1>
+          <span>Diabetes Risk Detection System</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li>
+          <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+            🎯 Check Risk
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('performance') }}" class="nav-link {% if request.endpoint == 'performance' %}active{% endif %}">
+            📊 Model Performance
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('about') }}" class="nav-link {% if request.endpoint == 'about' %}active{% endif %}">
+            📖 About & Viva Guide
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Body Content -->
+  <main class="main-wrapper">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer with College & Medical Disclaimer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="disclaimer-badge">
+        ⚠️ <strong>Medical Disclaimer:</strong> This application is an academic college project developed for <em>Computing in Python</em>. It provides statistical estimates based on machine learning and is <strong>not</strong> a substitute for clinical medical diagnosis. Always consult a certified healthcare professional.
+      </div>
+      <p>© 2026 Diabetes Risk Detection System | Built with Python, Flask & Scikit-Learn</p>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
