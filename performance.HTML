@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Model Performance & Comparison - DiaRisk AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Model Evaluation & Performance Comparison</h2>
+  <p>
+    We evaluated three machine learning algorithms on the Pima Indians Diabetes test dataset (20% held-out test split). The model with the highest accuracy was selected for clinical risk estimation.
+  </p>
+</div>
+
+{% if not model_info %}
+<div class="alert-error" style="background:#fffbeb; border-color:#fde68a; color:#92400e;">
+  <span>⚠️</span>
+  <div>
+    <strong>No training metadata found.</strong> Please run <code>python train_model.py</code> in your terminal to evaluate models and generate <code>model_info.json</code>.
+  </div>
+</div>
+{% else %}
+
+<!-- 3-Model Comparison Cards -->
+<div class="model-comparison-grid">
+  {% for name, metrics in model_info.model_comparison.items() %}
+  <div class="model-card {% if name == model_info.best_model_name %}winner{% endif %}">
+    {% if name == model_info.best_model_name %}
+    <span class="winner-tag">★ Selected Best Model</span>
+    {% endif %}
+    <div class="model-name">{{ name }}</div>
+    <div class="model-acc">{{ metrics.accuracy }}%</div>
+    <div class="model-acc-label">Test Accuracy</div>
+
+    <div class="metric-row">
+      <span style="color:var(--text-muted);">Precision (Class 1)</span>
+      <strong>{{ metrics.precision }}%</strong>
+    </div>
+    <div class="metric-row">
+      <span style="color:var(--text-muted);">Recall / Sensitivity</span>
+      <strong>{{ metrics.recall }}%</strong>
+    </div>
+    <div class="metric-row">
+      <span style="color:var(--text-muted);">F1-Score</span>
+      <strong>{{ metrics.f1_score }}%</strong>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Grid: Feature Importance & Confusion Matrix -->
+<div style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 28px; margin-top: 10px;">
+
+  <!-- Feature Importance Card -->
+  <div class="card">
+    <div class="card-title">
+      <span>📈</span> Feature Importance Ranking
+    </div>
+    <div class="card-subtitle">
+      Relative influence of each physiological factor in predicting diabetes:
+    </div>
+
+    <div class="feat-bar-container">
+      {% for feat, imp in model_info.feature_importances.items() %}
+      <div class="feat-row">
+        <div class="feat-meta">
+          <span>{{ feat }}</span>
+          <span>{{ imp }}%</span>
+        </div>
+        <div class="feat-progress">
+          <div class="feat-fill" style="width: {{ imp * 2.2 }}%; max-width: 100%;"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:16px;">
+      💡 <em>Observation:</em> <strong>Glucose</strong> and <strong>BMI</strong> consistently rank as the top risk determinants, matching standard endocrinological research.
+    </p>
+  </div>
+
+  <!-- Confusion Matrix & Dataset Stats Card -->
+  <div class="card">
+    <div class="card-title">
+      <span>🎯</span> Confusion Matrix (Best Model)
+    </div>
+    <div class="card-subtitle">
+      Classification breakdown for test samples (n = {{ model_info.dataset_stats.test_samples }}):
+    </div>
+
+    {% set cm = model_info.model_comparison[model_info.best_model_name].confusion_matrix %}
+    <table class="data-table cm-table" style="width:100%;">
+      <thead>
+        <tr>
+          <th>Actual \ Predicted</th>
+          <th>Predicted No (0)</th>
+          <th>Predicted Yes (1)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Actual No (0)</strong></td>
+          <td class="cm-cell tn">
+            <div>{{ cm[0][0] }}</div>
+            <small style="font-size:0.7rem; font-weight:normal;">True Negative</small>
+          </td>
+          <td class="cm-cell fp">
+            <div>{{ cm[0][1] }}</div>
+            <small style="font-size:0.7rem; font-weight:normal;">False Positive</small>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Actual Yes (1)</strong></td>
+          <td class="cm-cell fn">
+            <div>{{ cm[1][0] }}</div>
+            <small style="font-size:0.7rem; font-weight:normal;">False Negative</small>
+          </td>
+          <td class="cm-cell tp">
+            <div>{{ cm[1][1] }}</div>
+            <small style="font-size:0.7rem; font-weight:normal;">True Positive</small>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color);">
+      <div class="card-title" style="font-size:1rem;">
+        <span>📊</span> Dataset Distribution
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.85rem;">
+        <div>Total Samples: <strong>{{ model_info.dataset_stats.total_samples }}</strong></div>
+        <div>Non-Diabetic (0): <strong>{{ model_info.dataset_stats.non_diabetic_count }}</strong></div>
+        <div>Diabetic (1): <strong>{{ model_info.dataset_stats.diabetic_count }}</strong></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endif %}
+{% endblock %}
