@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}About Project & Viva Guide - DiaRisk AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Project Overview & Viva Examination Guide</h2>
+  <p>
+    This project was developed for the subject <strong>Computing in Python</strong>. It combines data engineering, applied supervised machine learning, and web application development using Flask.
+  </p>
+</div>
+
+<!-- Project Summary Card -->
+<div class="card about-section">
+  <div class="card-title">
+    <span>💡</span> What is the Diabetes Risk Detection System?
+  </div>
+  <p style="color:var(--text-muted); font-size:0.95rem; margin-top:8px;">
+    Diabetes mellitus is a chronic metabolic disorder characterized by elevated levels of blood glucose. Early detection enables lifestyle interventions that can delay or prevent the onset of Type 2 diabetes. This project implements a complete end-to-end Machine Learning pipeline:
+  </p>
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-top:16px;">
+    <div style="background:#f8fafc; padding:14px; border-radius:8px; border:1px solid #e2e8f0;">
+      <strong>1. Data Cleaning</strong>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">
+        Identifies physiologically impossible zero values in clinical variables and imputes them using column medians.
+      </p>
+    </div>
+    <div style="background:#f8fafc; padding:14px; border-radius:8px; border:1px solid #e2e8f0;">
+      <strong>2. Algorithm Comparison</strong>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">
+        Trains and rigorously compares Logistic Regression, Decision Tree, and Random Forest on held-out test data.
+      </p>
+    </div>
+    <div style="background:#f8fafc; padding:14px; border-radius:8px; border:1px solid #e2e8f0;">
+      <strong>3. Clinical Web App</strong>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">
+        Provides a responsive user interface with validation, risk stratification, and personalized lifestyle guidance.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Parameter Glossary Table -->
+<div class="card about-section">
+  <div class="card-title">
+    <span>📋</span> Dataset Features & Clinical Reference
+  </div>
+  <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:14px;">
+    The model is trained on the National Institute of Diabetes and Digestive and Kidney Diseases (Pima Indians) dataset:
+  </p>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Unit</th>
+          <th>Clinical Role</th>
+          <th>Normal Range</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for feat, info in field_info.items() %}
+        <tr>
+          <td><strong>{{ info.label }}</strong></td>
+          <td>{{ info.unit }}</td>
+          <td>{{ info.hint }}</td>
+          <td><span class="badge-tag normal">{{ info.normal_range }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Project Files Explanation for Viva -->
+<div class="card about-section">
+  <div class="card-title">
+    <span>📂</span> File Architecture & Purpose (Viva Reference)
+  </div>
+  <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
+    <div style="border-left: 3px solid var(--primary); padding-left: 12px;">
+      <strong>train_model.py</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        The offline machine learning pipeline. It loads <code>diabetes.csv</code>, cleans zero-value anomalies, performs an 80/20 train-test split, trains 3 models, evaluates accuracy and confusion matrix, and exports <code>model.pkl</code> and <code>model_info.json</code>.
+      </p>
+    </div>
+    <div style="border-left: 3px solid var(--primary); padding-left: 12px;">
+      <strong>app.py</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        The Flask web server. Handles routes for the prediction form (<code>/</code>), model performance metrics (<code>/performance</code>), and about documentation (<code>/about</code>). Loads <code>model.pkl</code> to perform real-time probability inference.
+      </p>
+    </div>
+    <div style="border-left: 3px solid var(--primary); padding-left: 12px;">
+      <strong>templates/</strong> (index.html, performance.html, about.html, base.html)
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        Jinja2 HTML templates providing a modular, consistent layout across all application pages with responsive card structures.
+      </p>
+    </div>
+    <div style="border-left: 3px solid var(--primary); padding-left: 12px;">
+      <strong>static/style.css</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        Custom CSS styling that provides modern health-tech typography, color-coded risk badges, responsive layouts, and interactive buttons.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Top Viva Questions & Answers -->
+<div class="card about-section">
+  <div class="card-title">
+    <span>🎓</span> Top Viva / Oral Examination Questions & Answers
+  </div>
+  <div class="faq-list">
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span>❓</span> Q1: Why did you replace 0 with median for Glucose, BP, BMI, etc.?
+      </div>
+      <div class="faq-answer">
+        In human physiology, a glucose level of 0 mg/dL or a blood pressure of 0 mm Hg is incompatible with life. In the Pima Indians dataset, 0 was recorded when the lab measurement was missing. If treated as numeric zero, the model would learn false correlations. We impute with the <strong>median</strong> because the median is robust to extreme outliers and skewed distributions.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span>❓</span> Q2: Why did you use 'stratify=y' during train_test_split?
+      </div>
+      <div class="faq-answer">
+        The Pima dataset has class imbalance (~65% negative, ~35% positive). Setting <code>stratify=y</code> guarantees that both the training set (80%) and the testing set (20%) have the exact same proportion of diabetic patients, preventing sampling bias.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span>❓</span> Q3: Why did Random Forest outperform a single Decision Tree?
+      </div>
+      <div class="faq-answer">
+        A single Decision Tree is prone to high variance and overfitting on training data. Random Forest is an <strong>ensemble method (bagging)</strong> that constructs multiple decision trees using bootstrap sampling and random feature subsets. Averaging predictions across trees reduces variance without increasing bias.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span>❓</span> Q4: What is the purpose of joblib in this project?
+      </div>
+      <div class="faq-answer">
+        <code>joblib</code> is an optimized serialization library in Python. It serializes the trained scikit-learn model object into a binary <code>.pkl</code> file on disk. The Flask server can then load this model instantaneously without retraining from scratch on every user request.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">
+        <span>❓</span> Q5: How does the model calculate risk percentage?
+      </div>
+      <div class="faq-answer">
+        The model uses <code>predict_proba(data)</code>, which outputs the posterior probability distribution for each class. We extract the probability for class 1 (diabetic outcome) and multiply by 100. If probability &lt; 35% it is categorized as Low, 35%–65% as Moderate/Pre-diabetic, and &gt; 65% as High.
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
